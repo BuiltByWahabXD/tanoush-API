@@ -100,8 +100,6 @@ const login = async (req, res) => {
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-
-    console.log("Login successful -> Cookies set");
     
     res.status(200).json({
       success: true,
@@ -215,7 +213,7 @@ const refresh = async (req, res) => {
       return res.status(403).json({ success: false, message: "Invalid refresh token. Please login again." });
     }
 
-    //
+    
     const newAccessToken = generateToken(user);
 
     res.cookie("accessToken", newAccessToken, {
@@ -225,6 +223,9 @@ const refresh = async (req, res) => {
       path: "/",
       maxAge: 1 * 60 * 1000, // 1 minute
     });
+
+    console.log("\nGuess Who Got Refreshed.... Access Token Obv!");
+    
 
     return res.status(200).json({ success: true, message: "Token refreshed" });
   } catch (error) {
