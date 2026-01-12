@@ -9,7 +9,7 @@ const generateHash = async (password) => {
 
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user._id.toString(), email: user.email },
+    { id: user._id.toString(), email: user.email, role: user.role },
     process.env.JWT_SECRET || "ReplacementKeyForDev11225478@@@45156",
     { expiresIn: process.env.JWT_EXPIRATION }
   );
@@ -17,7 +17,7 @@ const generateToken = (user) => {
 
 const generateRefreshToken = (user) => {
   return jwt.sign(
-    { id: user._id.toString(), email: user.email },
+    { id: user._id.toString(), email: user.email, role: user.role },
     process.env.REFRESH_TOKEN ,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION }
   );

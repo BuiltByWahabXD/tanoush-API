@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 
 const signup = async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, name, password, role } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -21,7 +21,8 @@ const signup = async (req, res) => {
     const newUser = new User({ 
       email, 
       name, 
-      password: hashedPassword
+      password: hashedPassword,
+      role: role === 'admin' ? 'admin' : 'user' // Only set admin if explicitly passed
     });
     await newUser.save();
 
@@ -74,6 +75,12 @@ const login = async (req, res) => {
 
     const accesstoken = generateToken(user);
     
+    console.log("Login - User object:", {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    });
     console.log("Generated token for user:", email, accesstoken);
 
 
@@ -108,6 +115,7 @@ const login = async (req, res) => {
         userId: user._id.toString(),
         name: user.name,
         email: user.email,
+        role: user.role,
         accesstoken: accesstoken,
         refreshtoken: refreshtoken
       },
@@ -174,7 +182,8 @@ const getCurrentUser = async (req, res) => {
       data: {
         userId: user._id.toString(),
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       },
     });
   } catch (error) {
@@ -234,6 +243,59 @@ const refresh = async (req, res) => {
 };
 
 
+// Get all users (Admin only)
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password -refreshTokens');
+    
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      users
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch users',
+      error: error.message
+    });
+  }
+};
+
+// Delete user (Admin only)
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Prevent admin from deleting themselves
+    if (id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete your own account'
+      });
+    }
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete user',
+      error: error.message
+    });
+  }
+};
 
 
 export default {
@@ -241,5 +303,7 @@ export default {
   login,
   refresh,
   logout,
-  getCurrentUser
+  getCurrentUser,
+  getAllUsers,
+  deleteUser
 }
