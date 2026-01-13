@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { protect } from '../middleware/authMiddleware.js';
+import cloudinary from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ const upload = multer({
   }
 });
 
-// Upload image endpoint - converts to base64
+// Upload image endpoint - uploads to Cloudinary
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -30,25 +31,53 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       });
     }
 
-    console.log(`Uploading image: ${req.file.originalname}, Size: ${(req.file.size / 1024).toFixed(2)} KB`);
+    console.log(`Uploading image to Cloudinary: ${req.file.originalname}, Size: ${(req.file.size / 1024).toFixed(2)} KB`);
+    console.log('Cloudinary config:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Not set',
+      api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Not set'
+    });
 
-    // Convert buffer to base64
-    const base64Image = req.file.buffer.toString('base64');
-    const dataURI = `data:${req.file.mimetype};base64,${base64Image}`;
+    // Upload to Cloudinary using buffer
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'tanoush-products',
+          resource_type: 'auto',
+          transformation: [
+            { width: 1200, height: 1200, crop: 'limit' },
+            { quality: 'auto' }
+          ]
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            console.log('Cloudinary upload success:', result.secure_url);
+            resolve(result);
+          }
+        }
+      );
+      
+      uploadStream.end(req.file.buffer);
+    });
 
-    console.log('Image converted to base64 successfully');
+    console.log('Image uploaded to Cloudinary successfully');
 
     res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',
-      imageUrl: dataURI
+      imageUrl: result.secure_url,
+      publicId: result.public_id
     });
   } catch (error) {
     console.error('Image upload error:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     res.status(500).json({
       success: false,
       message: 'Failed to upload image',
-      error: error.message
+      error: error.message || 'Unknown error'
     });
   }
 });
