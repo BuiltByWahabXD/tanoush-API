@@ -13,7 +13,7 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit per file
   },
   fileFilter: (req, file, cb) => {
-    // Accept images only
+    // images only
     if (!file.mimetype.startsWith('image/')) {
       return cb(new Error('Only image files are allowed!'), false);
     }
@@ -21,7 +21,7 @@ const upload = multer({
   }
 });
 
-// Upload image endpoint - uploads to Cloudinary
+// uploads to Cloudinary
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {

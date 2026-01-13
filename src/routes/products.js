@@ -16,13 +16,13 @@ const adminOnly = (req, res, next) => {
 };
 
 // Public routes
-router.get('/', ProductsController.getProducts); // Get all products with filters
-router.get('/filters', ProductsController.getFilterOptions); // Get filter options
-router.get('/:id', ProductsController.getProductById); // Get single product
+router.get('/', ProductsController.getProducts); 
+router.get('/filters', ProductsController.getFilterOptions);
+router.get('/:id', ProductsController.getProductById); 
 
 // Admin-only routes
-router.post('/', protect, adminOnly, ProductsController.createProduct); // Create product
-router.put('/:id', protect, adminOnly, ProductsController.updateProduct); // Update product
-router.delete('/:id', protect, adminOnly, ProductsController.deleteProduct); // Delete product
+router.post('/', protect, adminOnly, ProductsController.createProduct); 
+router.put('/:id', protect, adminOnly, ProductsController.updateProduct); 
+router.delete('/:id', protect, adminOnly, ProductsController.deleteProduct); 
 
 export default router;

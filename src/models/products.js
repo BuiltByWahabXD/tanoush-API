@@ -50,7 +50,7 @@ const productSchema = new mongoose.Schema(
       }
     },
     
-    // Product attributes for filtering
+    // Product attributes 
     attributes: {
       color: {
         type: [String],
@@ -63,7 +63,7 @@ const productSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: true // Adds createdAt and updatedAt automatically
+    timestamps: true 
   }
 );
 
@@ -71,7 +71,7 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ category: 1, brand: 1, price: 1 });
 productSchema.index({ createdAt: -1 });
 
-// Virtual field to check if product is in stock
+// heck if product is in stock
 productSchema.virtual('inStock').get(function() {
   return this.stock > 0;
 });
