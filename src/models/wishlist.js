@@ -15,7 +15,7 @@ const wishlistSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure a user can only have one wishlist entry per product
+// Ensuring one wishlist entry per product
 wishlistSchema.index({ user: 1, product: 1 }, { unique: true });
 
 const Wishlist = mongoose.model('Wishlist', wishlistSchema);
